@@ -2,3 +2,4 @@ jupyter
 folium
 requests
 geojson
+pyephem
