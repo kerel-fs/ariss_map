@@ -3,3 +3,5 @@ folium
 requests
 geojson
 pyephem
+pandas
+matplotlib
