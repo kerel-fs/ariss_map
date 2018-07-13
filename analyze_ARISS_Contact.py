@@ -141,6 +141,7 @@ def generate_geojson_and_cache(infile_observation_ids,
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate a geojson file and observations metadata based on the file with a list of observation_ids.')
     parser.add_argument('infile_observation_ids', metavar='infile_observation_ids', type=str)
+    parser.add_argument('infile_tle', metavar='infile_tle', type=str)
     parser.add_argument('output_dir', metavar='output_dir', type=str)
 
     args = parser.parse_args()
@@ -151,9 +152,10 @@ if __name__ == '__main__':
     GROUND_STATIONS_DUMP = os.path.join(BASE_DIR, 'ground_stations.json')
     GEOJSON_OUTPUT = os.path.join(BASE_DIR, 'ARISSContact_map.geojson')
 
-    TLE = ['ISS (ZARYA)',
-           '1 25544U 98067A   18183.60070602  .00001547  00000-0  30742-4 0  9999',
-           '2 25544  51.6424 301.8800 0003452 254.6052 284.2649 15.54000368120912']
+    TLE = []
+    with open(args.infile_tle, 'r') as f:
+        for line in f:
+            TLE.append(line)
 
     generate_geojson_and_cache(infile_observation_ids=INFILE_OBSERVATION_IDs,
                                cached_data=False,
