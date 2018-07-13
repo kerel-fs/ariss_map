@@ -74,10 +74,12 @@ def create_satellite_track_GeoJSON(tle, start_time, end_time, satellite_metadata
     return sat_feature
 
 
-if __name__ == '__main__':
-    observation_ids = load_observation_ids(INFILE_OBSERVATION_IDs)
-
-    cached_data = False
+def generate_geojson_and_cache(infile_observation_ids=INFILE_OBSERVATION_IDs,
+                               cached_data=False,
+                               observations_dump=OBSERVATIONS_DUMP,
+                               ground_stations_dump=GROUND_STATIONS_DUMP,
+                               geojson_output=GEOJSON_OUTPUT):
+    observation_ids = load_observation_ids(infile_observation_ids)
 
     if (cached_data):
         # Load observation data from file
@@ -88,7 +90,7 @@ if __name__ == '__main__':
         # print(observations)
 
         # Store fetched observation data in a local file
-        with open(OBSERVATIONS_DUMP, 'w') as outfile:
+        with open(observations_dump, 'w') as outfile:
             json.dump(observations, outfile)
 
     # Get list of all ground_stations
@@ -96,14 +98,14 @@ if __name__ == '__main__':
 
     if (cached_data):
         # Load ground station data from file
-        with open(GROUND_STATIONS_DUMP, 'r') as f:
+        with open(ground_stations_dump, 'r') as f:
             ground_stations = json.load(f)
     else:
         ground_stations = fetch_ground_station_data(ground_station_ids)
         # print(ground_stations)
 
         # Store fetched observation data in a local file
-        with open(GROUND_STATIONS_DUMP, 'w') as outfile:
+        with open(ground_stations_dump, 'w') as outfile:
             json.dump(ground_stations, outfile)
 
     satellite_data = fetch_satellite_data(observations[0]['norad_cat_id'])
@@ -141,5 +143,9 @@ if __name__ == '__main__':
     collection = geojson.FeatureCollection([*gs_features, sat_feature])
 
     # Write GeoJSON collection in a file
-    with open(GEOJSON_OUTPUT, 'w') as out_file:
+    with open(geojson_output, 'w') as out_file:
         json.dump(collection, out_file)
+
+
+if __name__ == '__main__':
+    generate_geojson_and_cache()
