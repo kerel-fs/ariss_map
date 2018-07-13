@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import requests
 import csv
 import geojson
 import json
@@ -9,6 +8,7 @@ import ephem
 
 from collections import defaultdict
 from datetime import datetime, date
+from satnogs_api_client import *
 
 
 DISCUSSION_URL = 'https://community.libre.space/t/ariss-contact-kardinal-frings-gymnasium-bonn-germany-direct-via-dloil/2268'
@@ -23,11 +23,7 @@ TLE = ['ISS (ZARYA)',
 GEOJSON_OUTPUT = os.path.join(BASE_DIR, 'ARISSContact_map.geojson')
 
 
-NETWORK_BASE_URL = 'https://network.satnogs.org/api'
-DB_BASE_URL = 'https://db.satnogs.org/api'
-
-
-def fetch_observation_ids(infile_observation_ids):
+def load_observation_ids(infile_observation_ids):
     # Read observation ids from file
     observation_ids = []
 
@@ -44,41 +40,6 @@ def fetch_observation_ids(infile_observation_ids):
             observation_ids.append(int(line[:-1]))
 
     return observation_ids
-
-
-def fetch_observation_data(observation_ids):
-    # Get station location from the observation via the observation_id
-    
-    observations = []
-    for observation_id in observation_ids:
-        r = requests.get(url='{}/observations/{}/'.format(NETWORK_BASE_URL, observation_id))
-        if r.status_code != requests.codes.ok:
-            print("Observation {} not found in network.".format(observation_id))
-            continue
-        observations.append(r.json())
-
-    return observations
-
-def fetch_ground_station_data(ground_station_ids):
-    # Fetch ground station metadata from network
-    ground_stations = []
-    for ground_station_id in ground_station_ids:
-        r = requests.get(url='{}/stations/{}/'.format(NETWORK_BASE_URL, ground_station_id))
-        if r.status_code != requests.codes.ok:
-            print("Ground Station {} not found in db.".format(ground_station_id))
-            raise
-        data = r.json()
-        ground_stations.append(r.json())
-    return ground_stations
-
-def fetch_satellite_data(norad_cat_id):
-    # Fetch satellite metadata from network
-    r = requests.get(url='{}/satellites/{}/'.format(DB_BASE_URL, norad_cat_id))
-    if r.status_code != requests.codes.ok:
-        print("ERROR: Satellite {} not found in network.".format(norad_cat_id))
-
-    return r.json()
-
 
 # Create ground station GeoJSON feature collection
 def create_ground_stations_GeoJSON(observations):
@@ -114,10 +75,9 @@ def create_satellite_track_GeoJSON(tle, start_time, end_time, satellite_metadata
 
 
 if __name__ == '__main__':
-    observation_ids = fetch_observation_ids(INFILE_OBSERVATION_IDs)
-    # print(observation_ids)
+    observation_ids = load_observation_ids(INFILE_OBSERVATION_IDs)
 
-    cached_data = True
+    cached_data = False
 
     if (cached_data):
         # Load observation data from file
@@ -162,7 +122,9 @@ if __name__ == '__main__':
     
     start_time = datetime.strptime(start_time_str, '%Y-%m-%dT%H:%M:%SZ')
     end_time = datetime.strptime(end_time_str, '%Y-%m-%dT%H:%M:%SZ')
-    # print("Duration: {}".format(end_time - start_time))
+    print("Start: {}".format(start_time))
+    print("End: {}".format(end_time))
+    print("Duration: {}".format(end_time - start_time))
 
     # Add this metadata to satellite information
     satellite_data['start'] = start_time_str
