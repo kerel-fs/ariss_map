@@ -68,7 +68,6 @@ def generate_geojson_and_cache(infile_observation_ids,
                                cached_data,
                                observations_dump,
                                ground_stations_dump,
-                               tle,
                                geojson_output):
     observation_ids = load_observation_ids(infile_observation_ids)
 
@@ -102,6 +101,11 @@ def generate_geojson_and_cache(infile_observation_ids,
     satellite_data = fetch_satellite_data(observations[0]['norad_cat_id'])
     # We don't cache the satellite data because it's a single API call
     # print(satellite_data)
+
+    # Get the TLE used by one of the observations
+    tle1 = 'ISS (ZARYA)'
+    [tle2, tle3] = fetch_tle_of_observation(observation_ids[0])
+    tle = [tle1, tle2, tle3]
 
     gs_features = create_ground_stations_GeoJSON(observations)
     # print(gs_features)
@@ -141,7 +145,6 @@ def generate_geojson_and_cache(infile_observation_ids,
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate a geojson file and observations metadata based on the file with a list of observation_ids.')
     parser.add_argument('infile_observation_ids', metavar='infile_observation_ids', type=str)
-    parser.add_argument('infile_tle', metavar='infile_tle', type=str)
     parser.add_argument('output_dir', metavar='output_dir', type=str)
 
     args = parser.parse_args()
@@ -152,14 +155,8 @@ if __name__ == '__main__':
     GROUND_STATIONS_DUMP = os.path.join(BASE_DIR, 'ground_stations.json')
     GEOJSON_OUTPUT = os.path.join(BASE_DIR, 'ARISSContact_map.geojson')
 
-    TLE = []
-    with open(args.infile_tle, 'r') as f:
-        for line in f:
-            TLE.append(line)
-
     generate_geojson_and_cache(infile_observation_ids=INFILE_OBSERVATION_IDs,
                                cached_data=False,
                                observations_dump=OBSERVATIONS_DUMP,
                                ground_stations_dump=GROUND_STATIONS_DUMP,
-                               tle=TLE,
                                geojson_output=GEOJSON_OUTPUT)
