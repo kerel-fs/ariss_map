@@ -5,22 +5,12 @@ import csv
 import geojson
 import json
 import ephem
+import argparse
 
 from collections import defaultdict
 from datetime import datetime, date
 from satnogs_api_client import *
 
-
-DISCUSSION_URL = 'https://community.libre.space/t/ariss-contact-kardinal-frings-gymnasium-bonn-germany-direct-via-dloil/2268'
-
-BASE_DIR = './ARISS_Contact20180703/'
-INFILE_OBSERVATION_IDs = os.path.join(BASE_DIR, 'observation_ids.txt')
-OBSERVATIONS_DUMP = os.path.join(BASE_DIR, 'observations.json')
-GROUND_STATIONS_DUMP = os.path.join(BASE_DIR, 'ground_stations.json')
-TLE = ['ISS (ZARYA)',
-       '1 25544U 98067A   18183.60070602  .00001547  00000-0  30742-4 0  9999',
-       '2 25544  51.6424 301.8800 0003452 254.6052 284.2649 15.54000368120912']
-GEOJSON_OUTPUT = os.path.join(BASE_DIR, 'ARISSContact_map.geojson')
 
 
 def load_observation_ids(infile_observation_ids):
@@ -74,11 +64,12 @@ def create_satellite_track_GeoJSON(tle, start_time, end_time, satellite_metadata
     return sat_feature
 
 
-def generate_geojson_and_cache(infile_observation_ids=INFILE_OBSERVATION_IDs,
-                               cached_data=False,
-                               observations_dump=OBSERVATIONS_DUMP,
-                               ground_stations_dump=GROUND_STATIONS_DUMP,
-                               geojson_output=GEOJSON_OUTPUT):
+def generate_geojson_and_cache(infile_observation_ids,
+                               cached_data,
+                               observations_dump,
+                               ground_stations_dump,
+                               tle,
+                               geojson_output):
     observation_ids = load_observation_ids(infile_observation_ids)
 
     if (cached_data):
@@ -132,7 +123,7 @@ def generate_geojson_and_cache(infile_observation_ids=INFILE_OBSERVATION_IDs,
     satellite_data['start'] = start_time_str
     satellite_data['end'] = end_time_str
 
-    sat_feature = create_satellite_track_GeoJSON(TLE,
+    sat_feature = create_satellite_track_GeoJSON(tle,
                                                  start_time,
                                                  end_time,
                                                  satellite_data,
@@ -148,4 +139,25 @@ def generate_geojson_and_cache(infile_observation_ids=INFILE_OBSERVATION_IDs,
 
 
 if __name__ == '__main__':
-    generate_geojson_and_cache()
+    parser = argparse.ArgumentParser(description='Generate a geojson file and observations metadata based on the file with a list of observation_ids.')
+    parser.add_argument('infile_observation_ids', metavar='infile_observation_ids', type=str)
+    parser.add_argument('output_dir', metavar='output_dir', type=str)
+
+    args = parser.parse_args()
+
+    BASE_DIR = args.output_dir
+    INFILE_OBSERVATION_IDs = args.infile_observation_ids
+    OBSERVATIONS_DUMP = os.path.join(BASE_DIR, 'observations.json')
+    GROUND_STATIONS_DUMP = os.path.join(BASE_DIR, 'ground_stations.json')
+    GEOJSON_OUTPUT = os.path.join(BASE_DIR, 'ARISSContact_map.geojson')
+
+    TLE = ['ISS (ZARYA)',
+           '1 25544U 98067A   18183.60070602  .00001547  00000-0  30742-4 0  9999',
+           '2 25544  51.6424 301.8800 0003452 254.6052 284.2649 15.54000368120912']
+
+    generate_geojson_and_cache(infile_observation_ids=INFILE_OBSERVATION_IDs,
+                               cached_data=False,
+                               observations_dump=OBSERVATIONS_DUMP,
+                               ground_stations_dump=GROUND_STATIONS_DUMP,
+                               tle=TLE,
+                               geojson_output=GEOJSON_OUTPUT)
