@@ -150,10 +150,24 @@ def generate_geojson_and_cache(norad_id,
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Generate a geojson file and observations metadata based on the file with a list of observation_ids.')
-    parser.add_argument('start', metavar='start', type=str)
-    parser.add_argument('end', metavar='end', type=str)
-    parser.add_argument('output_dir', metavar='output_dir', type=str)
+    parser = argparse.ArgumentParser(description='Generate a geojson file and observations metadata based on observations filtered on start and end time.')
+    parser.add_argument('--norad-id',
+                        metavar='norad_id',
+                        help='The NORAD ID of the selected satellite. Default is the ISS: 25544',
+                        default=25544,
+                        type=int)
+    parser.add_argument('start',
+                        metavar='start',
+                        help='The start time of the observation filter, formatted as %%Y-%%m-%%dT%%H:%%M:%%SZ',
+                        type=lambda s: datetime.strptime(s,'%Y-%m-%dT%H:%M:%SZ'))
+    parser.add_argument('end',
+                        metavar='end',
+                        help='The end time of the observation filter, formatted like the start time',
+                        type=lambda s: datetime.strptime(s,'%Y-%m-%dT%H:%M:%SZ'))
+    parser.add_argument('output_dir',
+                        metavar='output_dir',
+                        help='The directory where all ouput files (metadata cache and geojson file) are written to',
+                        type=str)
 
     args = parser.parse_args()
 
@@ -162,13 +176,9 @@ if __name__ == '__main__':
     GROUND_STATIONS_DUMP = os.path.join(BASE_DIR, 'ground_stations.json')
     GEOJSON_OUTPUT = os.path.join(BASE_DIR, 'ARISSContact_map.geojson')
 
-    start = datetime.strptime(args.start, '%Y-%m-%dT%H:%M:%SZ')
-    end = datetime.strptime(args.end, '%Y-%m-%dT%H:%M:%SZ')
-
-
-    generate_geojson_and_cache(norad_id=25544,
-                               start=start,
-                               end=end,
+    generate_geojson_and_cache(norad_id=args.norad_id,
+                               start=args.start,
+                               end=args.end,
                                cached_data=False,
                                observations_dump=OBSERVATIONS_DUMP,
                                ground_stations_dump=GROUND_STATIONS_DUMP,
