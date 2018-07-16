@@ -17,13 +17,43 @@ def fetch_observation_data_from_id(norad_id, start, end, prod=True):
                            norad_id,
                            start.isoformat(),
                            end.isoformat())
+
     print(url)
     r = requests.get(url=url)
 
     if r.status_code != requests.codes.ok:
         print("No observations found for {}, start: {}, end: {}.".format(norad_id, start_time, end_time))
         raise
-    return r.json()
+
+    observations = r.json()
+
+    next_page_available = ('Link' in r.headers.keys())
+
+    if next_page_available:
+        parts = r.headers['Link'].split(',')
+        for part in parts:
+            if part[-5:-1] == 'next':
+                next_page_url = part[1:-13]
+
+    while next_page_available:
+        print(next_page_url)
+        r = requests.get(url=next_page_url)
+
+        observations.extend(r.json())
+
+        next_page_available = False
+
+        if 'Link' in r.headers.keys():
+            parts = r.headers['Link'].split(',')
+            for part in parts:
+                if part[-5:-1] == 'next':
+                    next_page_url = part[1:-13]
+                    next_page_available = True
+
+    # Current prod is broken and can't filter on NORAD ID correctly, use client-side filtering instead
+    observations = list(filter(lambda o: o['norad_cat_id'] == norad_id, observations))
+
+    return observations
 
 
 def fetch_observation_data(observation_ids, prod=True):
