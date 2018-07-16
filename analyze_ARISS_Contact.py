@@ -78,7 +78,13 @@ def generate_geojson_and_cache(norad_id,
             observations = json.load(f)
     else:
         observations = fetch_observation_data_from_id(norad_id, start, end)
+        unkown_len = len(list(filter(lambda o: o['vetted_status'] == 'unknown', observations)))
         observations = list(filter(lambda o: o['vetted_status'] == 'good', observations))
+
+        print("UNKOWN/GOOD = {}/{}".format(unkown_len, len(observations)))
+        if len(observations) < 1:
+            print("No good observations available.")
+            return
 
         # Store fetched observation data in a local file
         with open(observations_dump, 'w') as outfile:
