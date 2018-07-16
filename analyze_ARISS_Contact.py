@@ -64,20 +64,21 @@ def create_satellite_track_GeoJSON(tle, start_time, end_time, satellite_metadata
     return sat_feature
 
 
-def generate_geojson_and_cache(infile_observation_ids,
+def generate_geojson_and_cache(norad_id,
+                               start,
+                               end,
                                cached_data,
                                observations_dump,
                                ground_stations_dump,
                                geojson_output):
-    observation_ids = load_observation_ids(infile_observation_ids)
 
     if (cached_data):
         # Load observation data from file
         with open(OBSERVATIONS_DUMP, 'r') as f:
             observations = json.load(f)
     else:
-        observations = fetch_observation_data(observation_ids)
-        # print(observations)
+        observations = fetch_observation_data_from_id(norad_id, start, end)
+        observations = list(filter(lambda o: o['vetted_status'] == 'good', observations))
 
         # Store fetched observation data in a local file
         with open(observations_dump, 'w') as outfile:
@@ -104,7 +105,7 @@ def generate_geojson_and_cache(infile_observation_ids,
 
     # Get the TLE used by one of the observations
     tle1 = 'ISS (ZARYA)'
-    [tle2, tle3] = fetch_tle_of_observation(observation_ids[0])
+    [tle2, tle3] = fetch_tle_of_observation(observations[0]['id'])
     tle = [tle1, tle2, tle3]
 
     gs_features = create_ground_stations_GeoJSON(observations)
@@ -144,18 +145,24 @@ def generate_geojson_and_cache(infile_observation_ids,
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate a geojson file and observations metadata based on the file with a list of observation_ids.')
-    parser.add_argument('infile_observation_ids', metavar='infile_observation_ids', type=str)
+    parser.add_argument('start', metavar='start', type=str)
+    parser.add_argument('end', metavar='end', type=str)
     parser.add_argument('output_dir', metavar='output_dir', type=str)
 
     args = parser.parse_args()
 
     BASE_DIR = args.output_dir
-    INFILE_OBSERVATION_IDs = args.infile_observation_ids
     OBSERVATIONS_DUMP = os.path.join(BASE_DIR, 'observations.json')
     GROUND_STATIONS_DUMP = os.path.join(BASE_DIR, 'ground_stations.json')
     GEOJSON_OUTPUT = os.path.join(BASE_DIR, 'ARISSContact_map.geojson')
 
-    generate_geojson_and_cache(infile_observation_ids=INFILE_OBSERVATION_IDs,
+    start = datetime.strptime(args.start, '%Y-%m-%dT%H:%M:%SZ')
+    end = datetime.strptime(args.end, '%Y-%m-%dT%H:%M:%SZ')
+
+
+    generate_geojson_and_cache(norad_id=25544,
+                               start=start,
+                               end=end,
                                cached_data=False,
                                observations_dump=OBSERVATIONS_DUMP,
                                ground_stations_dump=GROUND_STATIONS_DUMP,
