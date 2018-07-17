@@ -1,9 +1,21 @@
+# SatNOGS ARISS Contact Map & Co.
+
+This repository contains various python scripts for the gathering and handling
+of SatNOGS observations metadata.
+
+The script `analyze_ARISS_Contact.py` generates a geojson file for the
+visualisation of an ARISS contact based on a given start and end time.
+The script `print_observations.py` outputs the list of all observations of a
+given satellite between the given start and end time.
+
 ## Installation
+
 ```
 pip install -r requirements.txt
 ```
 
-## Usage
+## Usage: analyze\_ARISS\_Contact.py
+
 ```
 
 $ ./analyze_ARISS_Contact.py --help
@@ -27,6 +39,17 @@ optional arguments:
                        ISS: 25544
 ```
 
+
+The data files of some ARISS contacts provided in this repository were produced
+using the following calls of this script:
+```
+./analyze_ARISS_Contact.py 2018-07-03T06:00:00Z 2018-07-03T10:50:50Z ARISS_Contact20180703
+./analyze_ARISS_Contact.py 2018-07-13T13:50:00Z 2018-07-13T14:20:00Z ARISS_Contact20180713
+./analyze_ARISS_Contact.py 2018-07-17T08:10:00Z 2018-07-17T09:10:00Z ARISS_Contact20180717
+
+```
+
+## Usage: print\_observations.py
 ```
 
 $ ./print_observations.py --help
@@ -58,12 +81,4 @@ https://network.satnogs.org/observations/184743/
 https://network.satnogs.org/observations/184744/
 https://network.satnogs.org/observations/184745/
 https://network.satnogs.org/observations/184779/
-```
-
-The provided data files for some ARISS contacts were produced using
-the following calls of this script:
-```
-./analyze_ARISS_Contact.py 2018-07-03T06:00:00Z 2018-07-03T10:50:50Z ARISS_Contact20180703
-./analyze_ARISS_Contact.py 2018-07-13T13:50:00Z 2018-07-13T14:20:00Z ARISS_Contact20180713
-./analyze_ARISS_Contact.py 2018-07-17T08:10:00Z 2018-07-17T09:10:00Z ARISS_Contact20180717
 ```
